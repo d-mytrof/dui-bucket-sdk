@@ -6,7 +6,7 @@
         "extension"
     ],
     "homepage": "https://github.com/d-mytrof/dui-bucket-sdk",
-    "type": "yii2-extensions",
+    "type": "library",
     "license": "BSD-3-Clause",
     "authors": [
         {
