@@ -3,59 +3,76 @@ namespace dmytrof\DuiBucketSDK\Laravel;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 use dmytrof\DuiBucketSDK\DuiBucketSDK;
+use dmytrof\DuiBucketSDK\Http\BucketClient;
 use dmytrof\DuiBucketSDK\Error\ErrorHandler;
 use dmytrof\DuiBucketSDK\Logging\FileLogger;
 
 class DuiBucketServiceProvider extends ServiceProvider
 {
     /**
-     * Register the SDK singleton, ErrorHandler, and custom log channel.
+     * Register the SDK instance, HTTP client, and logging channel.
      */
     public function register()
     {
-        // Merge package config
+        // Merge the package configuration file
         $this->mergeConfigFrom(__DIR__.'/config/dui-bucket.php', 'dui-bucket');
 
-        // Bind SDK singleton
+        // Register the core SDK singleton
         $this->app->singleton('dui-bucket-sdk', function ($app) {
-            $cfg = $app['config']->get('dui-bucket');
+            $config = $app['config']->get('dui-bucket');
             return new DuiBucketSDK([
-                'api_url'        => $cfg['api_url'],
-                'api_key'        => $cfg['api_key'],
-                'default_bucket' => $cfg['default_bucket'],
-                'encryption'     => $cfg['encryption'],
+                'api_url'        => $config['api_url'],
+                'api_key'        => $config['api_key'],
+                'default_bucket' => $config['default_bucket'],
+                'encryption'     => $config['encryption'],
             ]);
         });
 
-        // Bind ErrorHandler with config injection
-        $this->app->singleton(ErrorHandler::class, function ($app) {
-            return new ErrorHandler($app['config']->get('dui-bucket'));
+        // Register the HTTP client used by the SDK and error handler
+        $this->app->singleton(BucketClient::class, function ($app) {
+            $config = $app['config']->get('dui-bucket');
+            return new BucketClient($config['api_url'], $config['api_key']);
         });
 
-        // Extend logging with FileLogger via SDK
+        // Extend Laravel logging with the custom FileLogger channel
         Log::extend('dui_bucket', function ($app, $config) {
-            return new FileLogger(
-                $config['api_url'],
-                $config['api_key'],
-                $config['level'] ?? 'error'
-            );
+            // Allow overriding via the logging channel config
+            $apiUrl = $config['api_url'] ?? $app['config']->get('dui-bucket.api_url');
+            $apiKey = $config['api_key'] ?? $app['config']->get('dui-bucket.api_key');
+            $level  = $config['level']   ?? 'error';
+
+            return new FileLogger($apiUrl, $apiKey, $level);
         });
     }
 
     /**
-     * Publish config and register the error handler.
+     * Publish configuration and register the global exception handler.
      */
     public function boot()
     {
+        // Publish the config file when running in the console
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/config/dui-bucket.php' => config_path('dui-bucket.php'),
             ], 'dui-bucket-config');
         }
 
-        // Resolve ErrorHandler and register exception handling
-        $handler = $this->app->make(ErrorHandler::class);
-        $handler->register();
+        // Load package config
+        $config = $this->app['config']->get('dui-bucket');
+
+        // Choose the appropriate logger: custom channel or default PSR-3 logger
+        if (!empty($config['log_enabled'])) {
+            $logger = Log::channel($config['log_channel']);
+        } else {
+            $logger = $this->app->make(LoggerInterface::class);
+        }
+
+        // Resolve the HTTP client for error reporting
+        $client = $this->app->make(BucketClient::class);
+
+        // Register the global exception handler with the logger and HTTP client
+        ErrorHandler::register($logger, $client);
     }
 }
