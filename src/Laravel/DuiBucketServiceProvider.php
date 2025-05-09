@@ -10,7 +10,7 @@ use dmytrof\DuiBucketSDK\Logging\FileLogger;
 class DuiBucketServiceProvider extends ServiceProvider
 {
     /**
-     * Register the SDK singleton and custom log channel.
+     * Register the SDK singleton, ErrorHandler, and custom log channel.
      */
     public function register()
     {
@@ -26,6 +26,11 @@ class DuiBucketServiceProvider extends ServiceProvider
                 'default_bucket' => $cfg['default_bucket'],
                 'encryption'     => $cfg['encryption'],
             ]);
+        });
+
+        // Bind ErrorHandler with config injection
+        $this->app->singleton(ErrorHandler::class, function ($app) {
+            return new ErrorHandler($app['config']->get('dui-bucket'));
         });
 
         // Extend logging with FileLogger via SDK
@@ -49,9 +54,8 @@ class DuiBucketServiceProvider extends ServiceProvider
             ], 'dui-bucket-config');
         }
 
-        // Hook into global exception handling
+        // Resolve ErrorHandler and register exception handling
         $handler = $this->app->make(ErrorHandler::class);
-        $handler->setConfig($this->app['config']->get('dui-bucket'));
         $handler->register();
     }
 }

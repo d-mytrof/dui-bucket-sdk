@@ -36,10 +36,10 @@ class DuiBucketExtension extends Module implements BootstrapInterface
         // Optionally add a Yii log target for FileLogger
         if (getenv('DUI_BUCKET_LOG_ENABLED') === 'true') {
             $app->get('log')->targets['duiBucket'] = [
-                'class'  => FileLogger::class,
-                'levels' => ['error', 'warning'],
-                'api_url' => getenv('DUI_BUCKET_API_URL'),
-                'api_key' => getenv('DUI_BUCKET_API_KEY'),
+                'class'    => FileLogger::class,
+                'levels'   => ['error', 'warning'],
+                'api_url'  => getenv('DUI_BUCKET_API_URL'),
+                'api_key'  => getenv('DUI_BUCKET_API_KEY'),
             ];
         }
     }
