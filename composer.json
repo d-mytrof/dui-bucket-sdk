@@ -1,0 +1,43 @@
+{
+  "name": "d-mytrof/dui-bucket-sdk",
+  "description": "PHP SDK for interacting with file bucket microservice",
+  "keywords": [
+    "bucket-sdk",
+    "extension"
+  ],
+  "homepage": "https://github.com/d-mytrof/dui-bucket-sdk",
+  "type": "library",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Dmytro Mytrofanov",
+      "email": "dmitrof.development@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "dmytrof\\DuiBucketSDK\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    },
+    "laravel": {
+      "providers": [
+        "dmytrof\\DuiBucketSDK\\Laravel\\DuiBucketServiceProvider"
+      ],
+      "aliases": {
+        "DuiBucket": "dmytrof\\DuiBucketSDK\\Laravel\\DuiBucket"
+      }
+    },
+    "yii\\extensions": {
+      "dui-bucket-sdk": "src/Yii2/DuiBucketExtension.php"
+    }
+  }
+}
