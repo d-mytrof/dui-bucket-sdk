@@ -24,6 +24,8 @@ class ErrorManager
             'message' => $message,
         ], array_filter($options, fn($k) => in_array($k, ['trace_log', 'context', 'level']), ARRAY_FILTER_USE_KEY));
 
+        $payload['trace_log'] = json_encode($payload['trace_log']);
+
         $response = $this->client->request('POST', '/errors', $payload);
 
         $this->logger->log('info', 'Error save response', ['response' => $response]);
