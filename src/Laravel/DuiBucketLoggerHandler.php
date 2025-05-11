@@ -25,12 +25,26 @@ class DuiBucketLoggerHandler extends AbstractProcessingHandler
             return;
         }
 
-        $context = array_merge($record->context ?? [], ['internal' => true]);
+        $context = array_merge($record->context ?? []);
+        $traceLog = $context['trace_log'] ?? ($record->extra['trace'] ?? '');
+        if (isset($context['trace_log'])) {
+            unset($context['trace_log']);
+        }
+        if (isset($context['trace'])) {
+            unset($context['trace']);
+        }
+
+        if (empty($traceLog)) {
+            $traceLog = $context['trace_log']
+                ?? (isset($context['exception']) && $context['exception'] instanceof \Throwable
+                    ? $context['exception']->getTraceAsString()
+                    : ($record->extra['trace'] ?? ''));
+        }
 
         app(ErrorManager::class)->save($record->message, [
             'level'     => strtolower($record->level->getName()),
             'context'   => $context,
-            'trace_log' => $record->extra['trace'] ?? '',
+            'trace_log' => $traceLog,
         ]);
     }
 }
