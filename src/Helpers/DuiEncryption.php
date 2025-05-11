@@ -17,11 +17,15 @@ class DuiEncryption
 
     public function __construct(?string $key = null, ?string $iv = null)
     {
-        $this->key = $key ?? getenv('DUI_BUCKET_COOKIE_SECRET_KEY');
-        $this->iv = $iv ?? getenv('DUI_BUCKET_COOKIE_IV_SECRET');
+        $this->key = $key ?? config('dui-bucket.cookie_secret_key');
+        $this->iv = $iv ?? config('dui-bucket.cookie_iv_secret');
 
         if (!$this->key || !$this->iv) {
             throw new Exception("DUI_BUCKET_COOKIE_SECRET_KEY and DUI_BUCKET_COOKIE_IV_SECRET must be set.");
+        }
+
+        if (strlen($this->iv) !== 16) {
+            throw new Exception("DUI_BUCKET_COOKIE_IV_SECRET must be exactly 16 bytes.");
         }
     }
 
