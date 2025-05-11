@@ -12,7 +12,7 @@ use yii\web\ErrorHandler as BaseHandler;
 use Throwable;
 use yii\log\Logger;
 
-class ErrorHandler extends BaseHandler
+class DuiErrorHandler extends BaseHandler
 {
     public function handleException($exception)
     {
