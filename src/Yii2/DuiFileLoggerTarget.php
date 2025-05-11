@@ -6,7 +6,7 @@ use Yii;
 use yii\log\Target;
 use yii\log\Logger;
 
-class FileLoggerTarget extends Target
+class DuiFileLoggerTarget extends Target
 {
     private array $hashes = [];
 
