@@ -25,7 +25,6 @@ class FileLogger implements LoggerInterface
 
     public function log($level, $message, array $context = []): void
     {
-        prd('11111');
         if (!$this->shouldLog($level)) {
             return;
         }

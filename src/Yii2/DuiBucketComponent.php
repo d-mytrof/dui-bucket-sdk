@@ -13,8 +13,8 @@ use dmytrof\DuiBucketSDK\Http\BucketClient;
 use dmytrof\DuiBucketSDK\Config\Config as DuiConfig;
 use dmytrof\DuiBucketSDK\Logging\ErrorManager;
 use dmytrof\DuiBucketSDK\Logging\LogManager;
-use dmytrof\DuiBucketSDK\Logging\FileLogger;
 use dmytrof\DuiBucketSDK\Helpers\DuiEncryption;
+use dmytrof\DuiBucketSDK\Logging\LoggerInterface;
 
 class DuiBucketComponent extends Component
 {
@@ -24,10 +24,10 @@ class DuiBucketComponent extends Component
     public bool $logEnabled = false;
     public string $logChannel = 'dui_bucket';
     public bool $disableSslVerify = false;
-    public string $logDriver = 'yii'; // 'yii' or 'file'
 
     private ErrorManager $errorManager;
     private LogManager $logManager;
+    private BucketClient $client;
 
     public function init(): void
     {
@@ -38,18 +38,13 @@ class DuiBucketComponent extends Component
         $this->logChannel = getenv('DUI_BUCKET_LOG_CHANNEL') ?: 'dui_bucket';
         $this->disableSslVerify = filter_var(getenv('DUI_DISABLE_SSL_VERIFY'), FILTER_VALIDATE_BOOLEAN);
 
-        $logger = match ($this->logDriver) {
-            'file' => new FileLogger($this->apiUrl, $this->apiKey),
-            default => new YiiLogger(),
-        };
-
         $config = new DuiConfig([
-            'x_api_key' => $this->apiKey,
-            'api_base_url' => $this->apiUrl,
-            'default_bucket' => $this->defaultBucket,
-            'log_enabled' => $this->logEnabled,
-            'log_channel' => $this->logChannel,
-            'disable_ssl_verify' => $this->disableSslVerify,
+            'x_api_key'         => $this->apiKey,
+            'api_base_url'      => $this->apiUrl,
+            'default_bucket'    => $this->defaultBucket,
+            'log_enabled'       => $this->logEnabled,
+            'log_channel'       => $this->logChannel,
+            'disable_ssl_verify'=> $this->disableSslVerify,
         ]);
 
         $encryption = new DuiEncryption(
@@ -57,10 +52,41 @@ class DuiBucketComponent extends Component
             getenv('DUI_BUCKET_COOKIE_IV_SECRET') ?: null
         );
 
-        $client = new BucketClient($config, $logger, $encryption);
+        $this->client = new BucketClient($config, new class implements LoggerInterface {
+            public function log(string $level, string $message, array $context = []): void {}
+        }, $encryption);
 
-        $this->errorManager = new ErrorManager($client, $logger);
-        $this->logManager = new LogManager($client, $logger);
+        $logger = new class($this->client) implements LoggerInterface {
+            private BucketClient $client;
+            private bool $locked = false;
+
+            public function __construct(BucketClient $client)
+            {
+                $this->client = $client;
+            }
+
+            public function log(string $level, string $message, array $context = []): void
+            {
+                if ($this->locked) return;
+                $this->locked = true;
+
+                try {
+                    $this->client->request('POST', '/errors', [
+                        'message'   => $message,
+                        'level'     => $level,
+                        'trace_log' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),
+                        'context'   => $context,
+                    ]);
+                } catch (\Throwable) {
+                    // silent fail
+                } finally {
+                    $this->locked = false;
+                }
+            }
+        };
+
+        $this->errorManager = new ErrorManager($this->client, $logger);
+        $this->logManager = new LogManager($this->client, $logger);
     }
 
     public function getErrorManager(): ErrorManager
@@ -71,5 +97,10 @@ class DuiBucketComponent extends Component
     public function getLogManager(): LogManager
     {
         return $this->logManager;
+    }
+
+    public function getClient(): BucketClient
+    {
+        return $this->client;
     }
 }

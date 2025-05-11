@@ -35,9 +35,6 @@
       "aliases": {
         "DuiBucket": "dmytrof\\DuiBucketSDK\\Laravel\\DuiBucket"
       }
-    },
-    "yii\\extensions": {
-      "dui-bucket-sdk": "src/Yii2/DuiBucketExtension.php"
     }
   }
 }

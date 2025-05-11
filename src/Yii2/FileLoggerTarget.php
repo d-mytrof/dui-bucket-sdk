@@ -1,49 +1,54 @@
 <?php
+
 namespace dmytrof\DuiBucketSDK\Yii2;
 
-/**
- * @copyright Copyright © 2025 Dmytro Mytrofanov
- * @package dui-bucket-sdk
- * @version 1.0.0
- */
-
+use Yii;
 use yii\log\Target;
 use yii\log\Logger;
 
 class FileLoggerTarget extends Target
 {
-    public $exportInterval = 1;
-
-    protected const LEVEL_NAMES = [
-        Logger::LEVEL_ERROR   => 'error',
-        Logger::LEVEL_WARNING => 'warning',
-        Logger::LEVEL_INFO    => 'info',
-        Logger::LEVEL_TRACE   => 'debug',
-        Logger::LEVEL_PROFILE_BEGIN => 'profile_begin',
-        Logger::LEVEL_PROFILE_END   => 'profile_end',
-    ];
+    private array $hashes = [];
 
     public function export(): void
     {
-        $sdk = \Yii::$app->duiBucket;
+        $sdk = Yii::$app->duiBucket ?? null;
+        if (!$sdk || !$sdk->getClient()) {
+            return;
+        }
 
         foreach ($this->messages as $message) {
             [$text, $level, $category, $timestamp] = $message;
-            $trace = $message[4] ?? null;
-            $context = $message[5] ?? [];
+
+            $hash = md5($text . $level);
+            if (in_array($hash, $this->hashes, true)) {
+                continue;
+            }
+            $this->hashes[] = $hash;
 
             $payload = [
                 'message'   => $text,
-                'level'     => self::LEVEL_NAMES[$level] ?? 'info',
-                'trace_log' => isset($context['trace_log'])
-                    ? (is_array($context['trace_log']) ? json_encode($context['trace_log']) : $context['trace_log'])
-                    : (is_array($trace) ? json_encode($trace) : $trace),
+                'level'     => Logger::getLevelName($level),
+                'trace_log' => $this->extractTrace($message),
+                'context'   => [],
             ];
 
-            $sdk->getErrorManager()->save(
-                $payload['message'],
-                $payload
-            );
+            try {
+                $sdk->getClient()->request('POST', '/errors', $payload);
+            } catch (\Throwable $e) {
+                //
+            }
         }
+    }
+
+    private function extractTrace(array $message): string
+    {
+        $trace = $message[4] ?? null;
+
+        if (is_array($trace)) {
+            return json_encode($trace, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        return is_string($trace) ? $trace : '';
     }
 }
