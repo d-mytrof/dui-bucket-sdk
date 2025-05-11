@@ -38,7 +38,11 @@ class DuiBucketServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(LoggerInterface::class, function () {
-            return new LaravelLogger(); // або FileLogger якщо потрібна API-відправка
+            return new LaravelLogger();
+        });
+
+        $this->app->singleton(DuiEncryption::class, function () {
+            return new DuiEncryption();
         });
 
         $this->app->singleton(BucketClient::class, function ($app) {
@@ -48,12 +52,19 @@ class DuiBucketServiceProvider extends ServiceProvider
                 $app->make(DuiEncryption::class),
             );
         });
+
         $this->app->singleton(ErrorManager::class, function ($app) {
-            return new ErrorManager($app->make(BucketClient::class), $app->make(LoggerInterface::class));
+            return new ErrorManager(
+                $app->make(BucketClient::class),
+                $app->make(LoggerInterface::class)
+            );
         });
 
         $this->app->singleton(LogManager::class, function ($app) {
-            return new LogManager($app->make(BucketClient::class), $app->make(LoggerInterface::class));
+            return new LogManager(
+                $app->make(BucketClient::class),
+                $app->make(LoggerInterface::class)
+            );
         });
 
         $this->app->alias(DuiBucket::class, 'dui-bucket-sdk');
@@ -66,8 +77,8 @@ class DuiBucketServiceProvider extends ServiceProvider
         ], 'dui-bucket-config');
 
         ErrorHandler::register(
-            $this->app->make(\dmytrof\DuiBucketSDK\Logging\LoggerInterface::class),
-            $this->app->make(\dmytrof\DuiBucketSDK\Http\BucketClient::class)
+            $this->app->make(LoggerInterface::class),
+            $this->app->make(BucketClient::class)
         );
     }
 }
