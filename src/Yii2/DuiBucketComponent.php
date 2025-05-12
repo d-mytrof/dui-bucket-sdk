@@ -77,6 +77,8 @@ class DuiBucketComponent extends Component
                 $this->locked = true;
 
                 try {
+                    $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+                        . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
                     $this->client->request('POST', '/errors', [
                         'message'   => $message,
                         'level'     => $level,
@@ -84,6 +86,7 @@ class DuiBucketComponent extends Component
                         'context'   => $context,
                         'environment' => $this->client->getConfig()->get('environment'),
                         'service' => $this->client->getConfig()->get('service'),
+                        'url'   => $fullUrl,
                     ]);
                 } catch (\Throwable) {
                     // silent fail

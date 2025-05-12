@@ -41,12 +41,15 @@ class DuiBucketLoggerHandler extends AbstractProcessingHandler
                     : ($record->extra['trace'] ?? ''));
         }
 
+        $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+            . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         app(ErrorManager::class)->save($record->message, [
             'level'     => strtolower($record->level->getName()),
             'context'   => $context,
             'trace_log' => $traceLog,
             'environment' => Config::get('dui-bucket.environment'),
             'service' => Config::get('dui-bucket.service'),
+            'url' => $fullUrl,
         ]);
     }
 }

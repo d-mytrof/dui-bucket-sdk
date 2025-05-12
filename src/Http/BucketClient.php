@@ -89,11 +89,14 @@ class BucketClient
 
     public function sendError(string $message, string $trace = ''): void
     {
+        $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+            . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $this->request('POST', '/errors', [
             'message' => $message,
             'trace' => $trace,
             'environment' => $this->config->get('environment'),
             'service' => $this->config->get('service'),
+            'url' => $fullUrl,
         ]);
     }
 
