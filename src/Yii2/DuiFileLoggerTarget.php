@@ -26,11 +26,17 @@ class DuiFileLoggerTarget extends Target
             }
             $this->hashes[] = $hash;
 
+            $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+                . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+
             $payload = [
                 'message'   => $text,
                 'level'     => Logger::getLevelName($level),
                 'trace_log' => $this->extractTrace($message),
                 'context'   => [],
+                'environment'   => $sdk->getClient()->getConfig()->get('environment'),
+                'message'   => $sdk->getClient()->getConfig()->get('service'),
+                'url'   => $fullUrl,
             ];
 
             try {

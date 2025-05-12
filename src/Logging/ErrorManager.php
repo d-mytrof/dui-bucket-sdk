@@ -29,6 +29,10 @@ class ErrorManager
         $payload['environment'] = $this->client->getConfig()->get('environment');
         $payload['service'] = $this->client->getConfig()->get('service');
 
+        $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+            . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $payload['url'] = $fullUrl;
+
         $response = $this->client->request('POST', '/errors', $payload);
 
         $this->logger->log('info', 'Error save response', ['response' => $response]);
