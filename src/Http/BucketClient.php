@@ -92,6 +92,7 @@ class BucketClient
         $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
             . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $this->request('POST', '/errors', [
+            'level' => 'error',
             'message' => $message,
             'trace' => $trace,
             'environment' => $this->config->get('environment'),
