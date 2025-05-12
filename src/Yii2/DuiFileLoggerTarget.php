@@ -35,7 +35,7 @@ class DuiFileLoggerTarget extends Target
                 'trace_log' => $this->extractTrace($message),
                 'context'   => [],
                 'environment'   => $sdk->getClient()->getConfig()->get('environment'),
-                'message'   => $sdk->getClient()->getConfig()->get('service'),
+                'service'   => $sdk->getClient()->getConfig()->get('service'),
                 'url'   => $fullUrl,
             ];
 

@@ -18,6 +18,9 @@ class DuiErrorHandler extends BaseHandler
     {
         try {
             if (Yii::$app->has('duiBucket')) {
+                $fullUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+                    . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+                $sdk = Yii::$app->duiBucket->getClient();
                 Yii::$app
                     ->duiBucket
                     ->getErrorManager()
@@ -30,6 +33,9 @@ class DuiErrorHandler extends BaseHandler
                                 'file' => $exception->getFile(),
                                 'line' => $exception->getLine(),
                             ],
+                            'environment'   => $sdk->getConfig()->get('environment'),
+                            'service'   => $sdk->getConfig()->get('service'),
+                            'url'   => $fullUrl,
                         ]
                     );
             }
