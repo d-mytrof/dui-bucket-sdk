@@ -92,6 +92,13 @@ class BucketClient
         $this->request('POST', '/errors', [
             'message' => $message,
             'trace' => $trace,
+            'environment' => $this->config->get('environment'),
+            'service' => $this->config->get('service'),
         ]);
+    }
+
+    public function getConfig(): Config
+    {
+        return $this->config;
     }
 }

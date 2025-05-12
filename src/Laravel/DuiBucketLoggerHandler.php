@@ -45,6 +45,8 @@ class DuiBucketLoggerHandler extends AbstractProcessingHandler
             'level'     => strtolower($record->level->getName()),
             'context'   => $context,
             'trace_log' => $traceLog,
+            'environment' => Config::get('dui-bucket.environment'),
+            'service' => Config::get('dui-bucket.service'),
         ]);
     }
 }

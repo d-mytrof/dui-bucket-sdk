@@ -24,6 +24,8 @@ class DuiBucketComponent extends Component
     public bool $logEnabled = false;
     public string $logChannel = 'dui_bucket';
     public bool $disableSslVerify = false;
+    public string $environment;
+    public string $service;
 
     private ErrorManager $errorManager;
     private LogManager $logManager;
@@ -37,6 +39,8 @@ class DuiBucketComponent extends Component
         $this->logEnabled = filter_var(getenv('DUI_BUCKET_LOG_ENABLED'), FILTER_VALIDATE_BOOLEAN);
         $this->logChannel = getenv('DUI_BUCKET_LOG_CHANNEL') ?: 'dui_bucket';
         $this->disableSslVerify = filter_var(getenv('DUI_DISABLE_SSL_VERIFY'), FILTER_VALIDATE_BOOLEAN);
+        $this->environment = getenv('DUI_DEFAULT_ENVIRONMENT') ?: $this->apiUrl;
+        $this->service = getenv('DUI_DEFAULT_SERVICE') ?: $this->apiUrl;
 
         $config = new DuiConfig([
             'x_api_key'         => $this->apiKey,
@@ -45,6 +49,8 @@ class DuiBucketComponent extends Component
             'log_enabled'       => $this->logEnabled,
             'log_channel'       => $this->logChannel,
             'disable_ssl_verify'=> $this->disableSslVerify,
+            'environment'=> $this->environment,
+            'service'=> $this->service,
         ]);
 
         $encryption = new DuiEncryption(
@@ -76,6 +82,8 @@ class DuiBucketComponent extends Component
                         'level'     => $level,
                         'trace_log' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),
                         'context'   => $context,
+                        'environment' => $this->client->getConfig()->get('environment'),
+                        'service' => $this->client->getConfig()->get('service'),
                     ]);
                 } catch (\Throwable) {
                     // silent fail

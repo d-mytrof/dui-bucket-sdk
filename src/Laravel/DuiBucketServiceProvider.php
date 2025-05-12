@@ -34,6 +34,8 @@ class DuiBucketServiceProvider extends ServiceProvider
                 'log_enabled'        => config('dui-bucket.log_enabled'),
                 'log_channel'        => config('dui-bucket.log_channel'),
                 'disable_ssl_verify' => config('dui-bucket.disable_ssl_verify'),
+                'environment' => config('dui-bucket.environment'),
+                'service' => config('dui-bucket.service'),
             ]);
         });
 

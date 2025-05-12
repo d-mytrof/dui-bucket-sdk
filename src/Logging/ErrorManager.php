@@ -26,6 +26,9 @@ class ErrorManager
 
         $payload['trace_log'] = json_encode($payload['trace_log']);
 
+        $payload['environment'] = $this->client->getConfig()->get('environment');
+        $payload['service'] = $this->client->getConfig()->get('service');
+
         $response = $this->client->request('POST', '/errors', $payload);
 
         $this->logger->log('info', 'Error save response', ['response' => $response]);
