@@ -17,7 +17,7 @@ return [
 
     // --- Misc ---
     'encryption' => env('DUI_BUCKET_ENCRYPTION', false),
-    'disable_ssl_verify' => env('DUI_DISABLE_SSL_VERIFY', false),
-    'environment' => env('DUI_DEFAULT_ENVIRONMENT', ''),
-    'service' => env('DUI_DEFAULT_SERVICE', ''),
+    'disable_ssl_verify' => env('DUI_BUCKET_DISABLE_SSL_VERIFY', false),
+    'environment' => env('DUI_BUCKET_DEFAULT_ENVIRONMENT', ''),
+    'service' => env('DUI_BUCKET_DEFAULT_SERVICE', ''),
 ];

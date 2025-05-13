@@ -38,9 +38,9 @@ class DuiBucketComponent extends Component
         $this->defaultBucket = getenv('DUI_BUCKET_DEFAULT_BUCKET') ?: 'public';
         $this->logEnabled = filter_var(getenv('DUI_BUCKET_LOG_ENABLED'), FILTER_VALIDATE_BOOLEAN);
         $this->logChannel = getenv('DUI_BUCKET_LOG_CHANNEL') ?: 'dui_bucket';
-        $this->disableSslVerify = filter_var(getenv('DUI_DISABLE_SSL_VERIFY'), FILTER_VALIDATE_BOOLEAN);
-        $this->environment = getenv('DUI_DEFAULT_ENVIRONMENT') ?: $this->apiUrl;
-        $this->service = getenv('DUI_DEFAULT_SERVICE') ?: $this->apiUrl;
+        $this->disableSslVerify = filter_var(getenv('DUI_BUCKET_DISABLE_SSL_VERIFY'), FILTER_VALIDATE_BOOLEAN);
+        $this->environment = getenv('DUI_BUCKET_DEFAULT_ENVIRONMENT') ?: $this->apiUrl;
+        $this->service = getenv('DUI_BUCKET_DEFAULT_SERVICE') ?: $this->apiUrl;
 
         $config = new DuiConfig([
             'x_api_key'         => $this->apiKey,
