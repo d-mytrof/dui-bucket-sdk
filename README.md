@@ -32,22 +32,22 @@ composer require d-mytrof/dui-bucket-sdk:^1.0
    <?php
    return [
        // Base URL of the bucket microservice API
-       'endpoint' => env('DUI_BUCKET_SDK_ENDPOINT', 'https://api.example.com'),
+       'endpoint' => env('DUI_BUCKET_ENDPOINT', 'https://api.example.com'),
 
        // Service token (x-api-key), stored in an HttpOnly cookie by your application
-       'api_key'  => env('DUI_BUCKET_SDK_API_KEY'),
+       'api_key'  => env('DUI_BUCKET_API_KEY'),
 
        // Optional: default bucket settings
-       'default_bucket' => env('DUI_BUCKET_SDK_DEFAULT_BUCKET', 'uploads'),
+       'default_bucket' => env('DUI_BUCKET_DEFAULT_BUCKET', 'uploads'),
    ];
    ```
 
 3. **Environment variables**: Add to your `.env`
 
    ```dotenv
-   DUI_BUCKET_SDK_ENDPOINT=https://api.my-files.local
-   DUI_BUCKET_SDK_API_KEY=your_service_token_here
-   DUI_BUCKET_SDK_DEFAULT_BUCKET=public-files
+   DUI_BUCKET_ENDPOINT=https://api.my-files.local
+   DUI_BUCKET_API_KEY=your_service_token_here
+   DUI_BUCKET_DEFAULT_BUCKET=public-files
    ```
 
 ---

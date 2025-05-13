@@ -33,8 +33,8 @@ class DuiBucketComponent extends Component
 
     public function init(): void
     {
-        $this->apiKey = getenv('DUI_BUCKET_SDK_API_KEY') ?: $this->apiKey;
-        $this->apiUrl = getenv('DUI_BUCKET_SDK_ENDPOINT') ?: $this->apiUrl;
+        $this->apiKey = getenv('DUI_BUCKET_API_KEY') ?: $this->apiKey;
+        $this->apiUrl = getenv('DUI_BUCKET_ENDPOINT') ?: $this->apiUrl;
         $this->defaultBucket = getenv('DUI_BUCKET_DEFAULT_BUCKET') ?: 'public';
         $this->logEnabled = filter_var(getenv('DUI_BUCKET_LOG_ENABLED'), FILTER_VALIDATE_BOOLEAN);
         $this->logChannel = getenv('DUI_BUCKET_LOG_CHANNEL') ?: 'dui_bucket';

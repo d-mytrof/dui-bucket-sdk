@@ -3,8 +3,8 @@
 return [
 
     // --- API Configuration ---
-    'api_url' => env('DUI_BUCKET_SDK_ENDPOINT', ''),
-    'api_key' => env('DUI_BUCKET_SDK_API_KEY', ''),
+    'api_url' => env('DUI_BUCKET_ENDPOINT', ''),
+    'api_key' => env('DUI_BUCKET_API_KEY', ''),
     'default_bucket' => env('DUI_BUCKET_DEFAULT_BUCKET', 'public'),
 
     // --- Encryption ---
