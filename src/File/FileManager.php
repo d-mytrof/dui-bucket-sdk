@@ -58,9 +58,9 @@ class FileManager
         }
 
         $multipart = [
-            ['name' => 'bucket', 'contents' => $bucket],
-            ['name' => 'file',   'contents' => fopen($filePath, 'r'), 'filename' => basename($filePath)],
-            ['name' => 'encrypt','contents' => !empty($options['encrypt']) ? '1' : '0'],
+            ['name' => 'bucket',  'contents' => $bucket],
+            ['name' => 'file',    'contents' => fopen($filePath, 'r'), 'filename' => basename($filePath)],
+            ['name' => 'encrypt', 'contents' => !empty($options['encrypt']) ? '1' : '0'],
         ];
         if (!empty($options['path'])) {
             $multipart[] = ['name' => 'path', 'contents' => $options['path']];
@@ -69,7 +69,10 @@ class FileManager
             $multipart[] = ['name' => 'name', 'contents' => $options['name']];
         }
 
-        $response = $this->request('POST', '/files', ['multipart' => $multipart], 201);
+        $response = $this->request('POST', '/files', [
+            'multipart' => $multipart
+        ]);
+
         return $response['data'];
     }
 
@@ -142,7 +145,7 @@ class FileManager
      */
     public function generateLink(string $fileUuid): string
     {
-        $path = "/files/{$fileUuid}/link";
+        $path     = "/files/{$fileUuid}/link";
         $response = $this->request('GET', $path);
         return $response['url'];
     }
@@ -159,9 +162,15 @@ class FileManager
      */
     public function download(string $fileUuid, array $query = []): string
     {
-        $path = "/files/{$fileUuid}";
-        $response = $this->client->request('GET', $path, ['query' => $query]);
-        return $response->getBody()->getContents();
+        // BucketClient::request only returns JSON arrays, so here we bypass it
+        $path    = "/files/{$fileUuid}";
+        $options = [];
+        if (!empty($query)) {
+            $options['query'] = $query;
+        }
+        $response = $this->client->request('GET', $path, $options);
+        // Assuming the API returns raw body for downloads:
+        return $response['body'] ?? '';
     }
 
     /**
@@ -175,7 +184,7 @@ class FileManager
      */
     public function generateLinks(array $uuids): array
     {
-        $payload = ['uuids' => $uuids];
+        $payload  = ['uuids' => $uuids];
         $response = $this->request('POST', '/files/links', ['json' => $payload]);
         return $response['links'];
     }
@@ -207,34 +216,51 @@ class FileManager
     }
 
     /**
-     * Internal helper to send requests, decode JSON, check status and return data.
+     * Internal helper to send requests through BucketClient.
      *
-     * @param string     $method         HTTP method
-     * @param string     $uri            Request URI (relative to base path)
-     * @param array      $options        Guzzle request options
-     * @param int|null   $expectedStatus HTTP status code expected for success
+     * @param string $method  HTTP method
+     * @param string $uri     Request URI (relative)
+     * @param array  $options [
+     *     'multipart' => array,        // for file uploads
+     *     'json'      => mixed,        // for JSON body
+     *     'query'     => array,        // for query parameters
+     *     'headers'   => array         // additional headers
+     * ]
      *
-     * @return array|string Decoded JSON response or raw string
+     * @return array Decoded JSON response
      *
-     * @throws RuntimeException on unexpected status or decode error
+     * @throws RuntimeException on request failure
      */
-    private function request(string $method, string $uri, array $options = [], int $expectedStatus = null)
+    private function request(string $method, string $uri, array $options = []): array
     {
+        // extract headers
+        $headers = $options['headers'] ?? [];
+
+        // append query to URI if present
+        if (!empty($options['query'])) {
+            $uri .= '?' . http_build_query($options['query']);
+        }
+
+        // determine body payload
+        if (isset($options['multipart'])) {
+            $body = ['multipart' => $options['multipart']];
+        } elseif (isset($options['json'])) {
+            $body = $options['json'];
+        } else {
+            $body = [];
+        }
+
+        // perform the request
         try {
-            $response = $this->client->request($method, $uri, $options);
-            $status = $response->getStatusCode();
-            $body = (string) $response->getBody();
-            $decoded = json_decode($body, true);
-
-            if ($expectedStatus !== null && $status !== $expectedStatus) {
-                $this->logger->error('Unexpected status', ['method' => $method, 'uri' => $uri, 'status' => $status, 'body' => $decoded]);
-                throw new RuntimeException("Unexpected status code: {$status}");
-            }
-
-            return $decoded;
+            return $this->client->request($method, $uri, $body, $headers);
         } catch (\Exception $e) {
-            $this->logger->error('Request failed', ['exception' => $e]);
-            throw new RuntimeException('Request failed: ' . $e->getMessage(), $e->getCode(), $e);
+            $this->logger->log('error', 'Request failed', [
+                'method'    => $method,
+                'uri'       => $uri,
+                'options'   => $options,
+                'exception' => $e
+            ]);
+            throw new RuntimeException('Bucket API request failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 }
