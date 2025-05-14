@@ -13,7 +13,7 @@ use dmytrof\DuiBucketSDK\Error\ErrorHandler;
 use dmytrof\DuiBucketSDK\Http\BucketClient;
 use dmytrof\DuiBucketSDK\Logging\LoggerInterface;
 use dmytrof\DuiBucketSDK\Logging\FileLogger;
-use dmytrof\DuiBucketSDK\Upload\FileUploader;
+use dmytrof\DuiBucketSDK\File\FileManager;
 use dmytrof\DuiBucketSDK\Bucket\BucketManager;
 use dmytrof\DuiBucketSDK\Logging\LogManager;
 use dmytrof\DuiBucketSDK\Logging\ErrorManager;
@@ -23,7 +23,7 @@ final class DuiBucketSDK
     private static Config $config;
     private static LoggerInterface $logger;
     private static BucketClient $client;
-    private static FileUploader $uploader;
+    private static FileManager $fileManager;
     private static BucketManager $bucketManager;
     private static LogManager $logManager;
     private static ErrorManager $errorManager;
@@ -33,7 +33,7 @@ final class DuiBucketSDK
         self::$config = new Config($config);
         self::$logger = new FileLogger(self::$config->get('log_path'));
         self::$client = new BucketClient(self::$config, self::$logger);
-        self::$uploader = new FileUploader(self::$client, self::$config, self::$logger);
+        self::$fileManager = new FileManager(self::$client, self::$config, self::$logger);
         self::$bucketManager = new BucketManager(self::$client, self::$logger);
         self::$logManager = new LogManager(self::$client, self::$logger);
         self::$errorManager = new ErrorManager(self::$client, self::$logger);
@@ -41,9 +41,9 @@ final class DuiBucketSDK
         ErrorHandler::register(self::$logger, self::$client);
     }
 
-    public static function getUploader(): FileUploader
+    public static function getFileManager(): FileManager
     {
-        return self::$uploader;
+        return self::$fileManager;
     }
 
     public static function getBucketManager(): BucketManager
