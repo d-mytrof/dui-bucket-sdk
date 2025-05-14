@@ -121,11 +121,6 @@ class DuiBucketComponent extends Component
         return $this->client;
     }
 
-    public function getLogManager(): LogManager
-    {
-        return $this->logManager;
-    }
-
     public function getFileManager(): FileManager
     {
         return $this->fileManager;
