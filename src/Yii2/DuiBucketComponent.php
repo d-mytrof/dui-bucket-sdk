@@ -15,6 +15,8 @@ use dmytrof\DuiBucketSDK\Logging\ErrorManager;
 use dmytrof\DuiBucketSDK\Logging\LogManager;
 use dmytrof\DuiBucketSDK\Helpers\DuiEncryption;
 use dmytrof\DuiBucketSDK\Logging\LoggerInterface;
+use dmytrof\DuiBucketSDK\File\FileManager;
+use dmytrof\DuiBucketSDK\Bucket\BucketManager;
 
 class DuiBucketComponent extends Component
 {
@@ -30,6 +32,8 @@ class DuiBucketComponent extends Component
     private ErrorManager $errorManager;
     private LogManager $logManager;
     private BucketClient $client;
+    private FileManager $fileManager;
+    private BucketManager $bucketManager;
 
     public function init(): void
     {
@@ -98,6 +102,8 @@ class DuiBucketComponent extends Component
 
         $this->errorManager = new ErrorManager($this->client, $logger);
         $this->logManager = new LogManager($this->client, $logger);
+        $this->fileManager = new FileManager($this->client, $config, $logger);
+        $this->bucketManager = new BucketManager($this->client, $logger);
     }
 
     public function getErrorManager(): ErrorManager
@@ -113,5 +119,20 @@ class DuiBucketComponent extends Component
     public function getClient(): BucketClient
     {
         return $this->client;
+    }
+
+    public function getLogManager(): LogManager
+    {
+        return $this->logManager;
+    }
+
+    public function getFileManager(): FileManager
+    {
+        return $this->fileManager;
+    }
+
+    public function getBucketManager(): BucketManager
+    {
+        return $this->bucketManager;
     }
 }
