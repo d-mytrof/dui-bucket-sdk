@@ -29,6 +29,7 @@ class DuiBucketServiceProvider extends ServiceProvider
         $this->app->singleton(Config::class, function () {
             return new Config([
                 'x_api_key'            => config('dui-bucket.api_key'),
+                'domain'       => config('dui-bucket.domain'),
                 'api_base_url'       => config('dui-bucket.api_url'),
                 'default_bucket'     => config('dui-bucket.default_bucket'),
                 'log_enabled'        => config('dui-bucket.log_enabled'),

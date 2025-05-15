@@ -28,6 +28,7 @@ class DuiBucketComponent extends Component
     public bool $disableSslVerify = false;
     public string $environment;
     public string $service;
+    public string $domain;
 
     private ErrorManager $errorManager;
     private LogManager $logManager;
@@ -37,6 +38,7 @@ class DuiBucketComponent extends Component
 
     public function init(): void
     {
+        $this->domain = getenv('DUI_BUCKET_DOMAIN') ?: $this->domain;
         $this->apiKey = getenv('DUI_BUCKET_API_KEY') ?: $this->apiKey;
         $this->apiUrl = getenv('DUI_BUCKET_ENDPOINT') ?: $this->apiUrl;
         $this->defaultBucket = getenv('DUI_BUCKET_DEFAULT_BUCKET') ?: 'public';
@@ -48,6 +50,7 @@ class DuiBucketComponent extends Component
 
         $config = new DuiConfig([
             'x_api_key'         => $this->apiKey,
+            'domain'            => $this->domain,
             'api_base_url'      => $this->apiUrl,
             'default_bucket'    => $this->defaultBucket,
             'log_enabled'       => $this->logEnabled,

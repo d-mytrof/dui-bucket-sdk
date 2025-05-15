@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'domain' => env('DUI_BUCKET_DOMAIN', ''),
     // --- API Configuration ---
     'api_url' => env('DUI_BUCKET_ENDPOINT', ''),
     'api_key' => env('DUI_BUCKET_API_KEY', ''),
