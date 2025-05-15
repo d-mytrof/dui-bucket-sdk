@@ -263,4 +263,13 @@ class FileManager
             throw new RuntimeException('Bucket API request failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
+
+    /**
+     * @param string $uuid
+     * @return string
+     */
+    public function getLink(string $uuid): string
+    {
+        return $this->config->get('domain') . '/files/' . $uuid;
+    }
 }
