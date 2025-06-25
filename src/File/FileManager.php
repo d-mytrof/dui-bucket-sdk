@@ -254,13 +254,27 @@ class FileManager
         try {
             return $this->client->request($method, $uri, $body, $headers);
         } catch (\Exception $e) {
-            $this->logger->log('error', 'Request failed', [
+            $this->logger->log('error', 'Request failed: '.$e->getMessage(), [
                 'method'    => $method,
                 'uri'       => $uri,
                 'options'   => $options,
                 'exception' => $e
             ]);
-            throw new RuntimeException('Bucket API request failed: ' . $e->getMessage(), $e->getCode(), $e);
+
+            if ($e->getCode() >= 400) {
+                $status = max(400, min(599, (int)$e->getCode()));
+                if (!headers_sent()) {
+                    http_response_code($status);
+                    header('Content-Type: application/json');
+                }
+                echo json_encode([
+                    'error'   => true,
+                    'message' => $e->getMessage(),
+                ]);
+                exit;
+            }
+
+            return [];
         }
     }
 

@@ -47,6 +47,19 @@ class BucketClient
             $defaultHeaders[] = 'Authorization: Bearer ' . $this->userToken;
         }
 
+        $langHeader = null;
+        if (!empty($_SERVER['HTTP_LANG'])) {
+            $langHeader = $_SERVER['HTTP_LANG'];
+        } elseif (function_exists('getallheaders')) {
+            $all = getallheaders();
+            if (!empty($all['Lang'])) {
+                $langHeader = $all['Lang'];
+            }
+        }
+        if ($langHeader) {
+            $defaultHeaders[] = 'Lang: ' . $langHeader;
+        }
+
         // Detect and prepare multipart/form-data vs JSON
         if (isset($body['multipart']) && is_array($body['multipart'])) {
             // Convert Guzzle 'multipart' spec into CURLFile and simple fields
@@ -113,7 +126,12 @@ class BucketClient
                 'status' => $status,
                 'body'   => $decoded,
             ]);
-            throw new RuntimeException($msg, $status);
+            if (!headers_sent()) {
+                http_response_code($status);
+            }
+
+            $msg = $decoded['error'] ?? $decoded['message'] ?? "HTTP error {$status}";
+            throw new \RuntimeException($msg, $status);
         }
 
         return $decoded;
