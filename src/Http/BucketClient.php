@@ -129,8 +129,6 @@ class BucketClient
                     'body'   => $decoded,
                 ]);
             }
-
-            throw new RuntimeException($msg, $status);
         }
 
         return $decoded;
