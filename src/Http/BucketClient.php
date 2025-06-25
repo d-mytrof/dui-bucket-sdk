@@ -120,21 +120,24 @@ class BucketClient
 
         if ($status >= 400) {
             $msg = $decoded['error'] ?? $decoded['message'] ?? "HTTP error {$status}";
-            $this->logger->log('error', 'HTTP error response', [
-                'method' => $method,
-                'uri'    => $uri,
-                'status' => $status,
-                'body'   => $decoded,
-            ]);
-            if (!headers_sent()) {
-                http_response_code($status);
+
+            if (!$this->isLoggingRequest($uri)) {
+                $this->logger->log('error', 'HTTP error response', [
+                    'method' => $method,
+                    'uri'    => $uri,
+                    'status' => $status,
+                    'body'   => $decoded,
+                ]);
             }
 
-            $msg = $decoded['error'] ?? $decoded['message'] ?? "HTTP error {$status}";
-            throw new \RuntimeException($msg, $status);
+            throw new RuntimeException($msg, $status);
         }
 
         return $decoded;
+    }
+
+    private function isLoggingRequest(string $uri): bool {
+        return strpos($uri, '/errors') !== false;
     }
 
     public function sendError(string $message, string $trace = ''): void
