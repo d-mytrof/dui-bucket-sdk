@@ -11,6 +11,8 @@ namespace dmytrof\DuiBucketSDK\Http;
 use dmytrof\DuiBucketSDK\Config\Config;
 use dmytrof\DuiBucketSDK\Logging\LoggerInterface;
 use dmytrof\DuiBucketSDK\Helpers\DuiEncryption;
+use dmytrof\DuiBucketSDK\ApiKey\ApiKeyProviderInterface;
+use dmytrof\DuiBucketSDK\ApiKey\EnvApiKeyProvider;
 use RuntimeException;
 
 class BucketClient
@@ -19,17 +21,44 @@ class BucketClient
     private LoggerInterface $logger;
     private DuiEncryption $encryption;
     private ?string $userToken = null;
+    private ApiKeyProviderInterface $apiKeyProvider;
 
-    public function __construct(Config $config, LoggerInterface $logger, DuiEncryption $encryption)
-    {
+    public function __construct(
+        Config $config, 
+        LoggerInterface $logger, 
+        DuiEncryption $encryption, 
+        ?ApiKeyProviderInterface $apiKeyProvider = null
+    ) {
         $this->config = $config;
         $this->logger = $logger;
         $this->encryption = $encryption;
+        $this->apiKeyProvider = $apiKeyProvider ?? new EnvApiKeyProvider('DUI_BUCKET_API_KEY', $this->config->get('x_api_key'));
     }
 
     public function setUserToken(?string $token): void
     {
         $this->userToken = $token;
+    }
+
+    /**
+     * Set the API key provider
+     * 
+     * @param ApiKeyProviderInterface $apiKeyProvider The API key provider
+     * @return void
+     */
+    public function setApiKeyProvider(ApiKeyProviderInterface $apiKeyProvider): void
+    {
+        $this->apiKeyProvider = $apiKeyProvider;
+    }
+
+    /**
+     * Get the current API key provider
+     * 
+     * @return ApiKeyProviderInterface The API key provider
+     */
+    public function getApiKeyProvider(): ApiKeyProviderInterface
+    {
+        return $this->apiKeyProvider;
     }
 
     public function request(string $method, string $uri, array $body = [], array $headers = []): array
@@ -40,7 +69,7 @@ class BucketClient
         // Build default headers
         $defaultHeaders = [
             'Accept: application/json',
-            'Cookie: x-api-key=' . $this->encryption->encrypt($this->config->get('x_api_key')),
+            'Cookie: x-api-key=' . $this->encryption->encrypt($this->apiKeyProvider->getApiKey()),
         ];
 
         if ($this->userToken) {

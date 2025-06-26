@@ -2,10 +2,16 @@
 
 return [
     'domain' => env('DUI_BUCKET_DOMAIN', ''),
+
     // --- API Configuration ---
     'api_url' => env('DUI_BUCKET_ENDPOINT', ''),
     'api_key' => env('DUI_BUCKET_API_KEY', ''),
     'default_bucket' => env('DUI_BUCKET_DEFAULT_BUCKET', 'public'),
+
+    // --- API Key Provider Configuration ---
+    'api_key_provider' => env('DUI_BUCKET_API_KEY_PROVIDER', 'env'), // 'env' or 'database'
+    'database_client_name' => env('DUI_BUCKET_DB_CLIENT_NAME'),
+    'database_model_class' => env('DUI_BUCKET_DB_MODEL_CLASS', 'App\Models\ApiKeyClient'),
 
     // --- Encryption ---
     'cookie_secret_key' => env('DUI_BUCKET_COOKIE_SECRET_KEY'),

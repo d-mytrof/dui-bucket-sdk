@@ -19,6 +19,8 @@ use dmytrof\DuiBucketSDK\Laravel\LaravelLogger;
 use dmytrof\DuiBucketSDK\Laravel\DuiBucket;
 use dmytrof\DuiBucketSDK\Error\ErrorHandler;
 use dmytrof\DuiBucketSDK\Helpers\DuiEncryption;
+use dmytrof\DuiBucketSDK\ApiKey\ApiKeyProviderInterface;
+use dmytrof\DuiBucketSDK\ApiKey\EnvApiKeyProvider;
 
 class DuiBucketServiceProvider extends ServiceProvider
 {
@@ -29,14 +31,14 @@ class DuiBucketServiceProvider extends ServiceProvider
         $this->app->singleton(Config::class, function () {
             return new Config([
                 'x_api_key'            => config('dui-bucket.api_key'),
-                'domain'       => config('dui-bucket.domain'),
-                'api_base_url'       => config('dui-bucket.api_url'),
-                'default_bucket'     => config('dui-bucket.default_bucket'),
-                'log_enabled'        => config('dui-bucket.log_enabled'),
-                'log_channel'        => config('dui-bucket.log_channel'),
-                'disable_ssl_verify' => config('dui-bucket.disable_ssl_verify'),
-                'environment' => config('dui-bucket.environment'),
-                'service' => config('dui-bucket.service'),
+                'domain'               => config('dui-bucket.domain'),
+                'api_base_url'         => config('dui-bucket.api_url'),
+                'default_bucket'       => config('dui-bucket.default_bucket'),
+                'log_enabled'          => config('dui-bucket.log_enabled'),
+                'log_channel'          => config('dui-bucket.log_channel'),
+                'disable_ssl_verify'   => config('dui-bucket.disable_ssl_verify'),
+                'environment'          => config('dui-bucket.environment'),
+                'service'              => config('dui-bucket.service'),
             ]);
         });
 
@@ -45,7 +47,33 @@ class DuiBucketServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(DuiEncryption::class, function () {
-            return new DuiEncryption();
+            return new DuiEncryption(
+                config('dui-bucket.cookie_secret_key'),
+                config('dui-bucket.cookie_iv_secret')
+            );
+        });
+
+        $this->app->singleton(ApiKeyProviderInterface::class, function ($app) {
+            $providerType = config('dui-bucket.api_key_provider', 'env');
+
+            switch ($providerType) {
+                case 'database':
+                    $provider = new LaravelApiKeyProvider($app);
+                    $databaseClientName = config('dui-bucket.database_client_name');
+
+                    if (!$databaseClientName) {
+                        throw new \RuntimeException('Database client name is required when using database API key provider');
+                    }
+
+                    $modelClass = config('dui-bucket.database_model_class', 'App\Models\ApiKeyClient');
+                    $provider->setDatabaseProvider($databaseClientName, $modelClass);
+                    return $provider;
+
+                case 'env':
+                default:
+                    $config = $app->make(Config::class);
+                    return new EnvApiKeyProvider('DUI_BUCKET_API_KEY', $config->get('x_api_key'));
+            }
         });
 
         $this->app->singleton(BucketClient::class, function ($app) {
@@ -53,6 +81,7 @@ class DuiBucketServiceProvider extends ServiceProvider
                 $app->make(Config::class),
                 $app->make(LoggerInterface::class),
                 $app->make(DuiEncryption::class),
+                $app->make(ApiKeyProviderInterface::class)
             );
         });
 
@@ -76,7 +105,7 @@ class DuiBucketServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/dui-bucket.php' => config_path('dui-bucket.php'),
+            __DIR__ . '/config/dui-bucket.php' => config_path('dui-bucket.php'),
         ], 'dui-bucket-config');
 
         ErrorHandler::register(
