@@ -73,15 +73,7 @@ class FileManager
             'multipart' => $multipart
         ]);
 
-        if (isset($response['data'])) {
-            return $response['data'];
-        }
-
-        if (isset($response['message'])) {
-            return $response['message'];
-        }
-
-        return $response;
+        return is_array($response) ? $response : [$response];
     }
 
     /**
