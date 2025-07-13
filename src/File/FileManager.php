@@ -279,11 +279,12 @@ class FileManager
     }
 
     /**
-     * @param string $uuid
+     * @param string $bucket
+     * @param string $name
      * @return string
      */
-    public function getLink(string $uuid): string
+    public function getLink(string $bucket, string $name): string
     {
-        return $this->config->get('domain') . '/files/' . $uuid;
+        return $this->config->get('domain') . '/files/' . $bucket . '/' . $name;
     }
 }
