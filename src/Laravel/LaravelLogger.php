@@ -10,11 +10,18 @@ namespace dmytrof\DuiBucketSDK\Laravel;
 
 use dmytrof\DuiBucketSDK\Logging\LoggerInterface;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 
 class LaravelLogger implements LoggerInterface
 {
     public function log(string $level, string $message, array $context = []): void
     {
-        Log::channel(config('dui-bucket.log_channel', 'stack'))->{$level}($message, $context);
+        $channel = 'stack';
+
+        if (Config::has('dui-bucket.log_channel')) {
+            $channel = Config::get('dui-bucket.log_channel', 'stack');
+        }
+
+        Log::channel($channel)->{$level}($message, $context);
     }
 }
